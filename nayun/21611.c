@@ -16,7 +16,9 @@ int g_one;
 int g_two;
 int g_three;
 
+void mapTo2D(int map1D[2500], int map[50][50], int n);
 void test_printMap1D(int map[2500], int n);
+void test_printMap(int map[50][50], int n);
 
 void blizzard(int dir, int s, int map[50][50], int n) { // dir 방향으로 거리 s 이하의 구슬 모두 파괴
 	int shark = n / 2;
@@ -139,6 +141,7 @@ void change(int map1D[2500], int n) {
 	int starting_idx;
 	int number;
 	int count = 1;
+
 	for (int i = 1; i < n * n; i += 2) {
 		if (map1D[i] == 0)
 			return ;
@@ -149,6 +152,7 @@ void change(int map1D[2500], int n) {
 				map1D[i++] = 0;
 				count++;
 			}
+			map1D[i] = 0;
 			map1D[starting_idx] = count;
 			map1D[starting_idx + 1] = number;
 			move(map1D, n);
@@ -261,15 +265,11 @@ int main () {
 		while (explode(map1D, n))
 			; // explode 전후가 같을 때까지 explode 해야함 . . == 4개가 연속하지 않을때까지
 
-		mapTo2D(map1D, map, n);
-		printf("\nmap before change\n");
-		test_printMap(map, n);
-
 		change(map1D, n);
 
 		mapTo2D(map1D, map, n);
-		printf("\nmap after %dth blizzard\n", i/2 + 1);
-		test_printMap(map, n);
+		// printf("\nmap after %dth blizzard\n", i/2 + 1);
+		// test_printMap(map, n);
 		free(map1D);
 		map1D = NULL;
 	}
