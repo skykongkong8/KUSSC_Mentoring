@@ -84,16 +84,6 @@ int *mapTo1D(int map[50][50], int n) {
 	return (map1D);
 }
 
-// 1차원을 2차원으로 바꾸는 함수도 만들귀 . . !
-int **mapTo2D(int map[2500], int n) {
-	int **map2D = calloc(50, sizeof(int *));
-	int shark = n / 2;
-	int dx = 0;
-	int dy = 0;
-	int dir = 1;
-	return (map2D);
-}
-
 void move(int map1D[2500], int n) {
 	for (int i = 0; i < n * n; i++) {
 		if (map1D[i] == 0 && i != 0) {
@@ -104,12 +94,44 @@ void move(int map1D[2500], int n) {
 	}
 }
 
-void explode(int map1D[2500], int n) {
+int explode(int map1D[2500], int n) {
+	int count = 1;
+	int	i = 0;
+	int ret = 0;
+	while (i < n * n) {
+		if ((map1D[i] == map1D[i + 1]) && map1D[i] != 0) {
+			while ((map1D[i] == map1D[i + 1]) && map1D[i] != 0) {
+				count++;
+				i++;
+			}
+			if (count >= 4) {
+				while (count > 0) {
+					map1D[i--] = 0;
+					count--;
+				}
+				ret = 1; // explode 일어나면 리턴값 변경
+			}
+			move(map1D, n);
+			count = 1;
+		}
+		else
+			i++;
+	}
+	return (ret);
+}
+
+void change(int map1D[2500], int n) {
 
 }
 
-void update(int map1D[2500], int n) {
-
+// 1차원을 2차원으로 바꾸는 함수도 만들귀 . . ! .. vs 그냥 블리자드를 1차원맵에서 할수있게 그걸 새로짜기
+int **mapTo2D(int map[2500], int n) {
+	int **map2D = calloc(50, sizeof(int *));
+	int shark = n / 2;
+	int dx = 0;
+	int dy = 0;
+	int dir = 1;
+	return (map2D);
 }
 
 void test_printMap(int map[50][50], int n) {
@@ -142,7 +164,7 @@ int main () {
 	// 연속하는 구슬 4개 이상 시 폭발 => 폭발 함수
 	// 다시 이동, 다시 폭발, ..
 
-	// 구슬 재분배
+	// 구슬 재분배 : 연속하는 그룹 당 연속개수 / 구슬번호 로 분배 (한개도 연속으로 침)
 
 	int map[50][50];
 	for (int i = 0; i < n; i++) {
@@ -155,21 +177,19 @@ int main () {
 	for (int i = 0; i < m * 2; i++) {
 		scanf("%d", &magic[i]);
 	}
-	printf("initial map in 2D\n");
-	test_printMap(map, n);
 
-	for (int i = 0; magic[i + 1]; i++) {
+	for (int i = 0; magic[i + 1]; i += 2) {
 		int *map1D;
 		blizzard(magic[i], magic[i + 1], map, n);
 		map1D = mapTo1D(map, n);
-		printf("\n\n\nmap changed into 1D\n");
-		test_printMap1D(map1D, n);
 		move(map1D, n);
-		printf("\n\n\nmap after filling zero in 1D\n");
-		test_printMap1D(map1D, n);		
-		// explode(map, n);
-		// update(map, n);
+		while (explode(map1D, n))
+			; // explode 전후가 같을 때까지 explode 해야함 . . == 4개가 연속하지 않을때까지
+		printf("\nmap after filling explosion in 1D\n");
+		test_printMap1D(map1D, n);
+		// change(map, n);
 		free(map1D);
+		map1D = NULL;
 	}
 
 	// printf("");
