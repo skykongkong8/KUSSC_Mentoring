@@ -87,13 +87,13 @@ int *mapTo1D(int map[50][50], int n) {
 			amount++;
 		}
 	}
-	for (j = amount - 1; j >= 0; j--) {
+	for (j = amount - 2; j >= 0; j--) {
 		map1D[idx++] = map[0][j];
 	}
 	return (map1D);
 }
 
-void move(int map1D[2500], int n) { // idx = 43, 44 왜 안 옮겨짐? 제발
+void move(int map1D[2500], int n) {
 	for (int i = 1; i < n * n; i++) {
 		if (map1D[i] == 0 && map1D[i + 1] != 0) {
 			for (int j = i; j < n * n; j++) {
@@ -156,14 +156,12 @@ void change(int map1D[2500], int n) {
 			count = 1;
 		}
 		else {
-			// printf("before : index %d %d value %d %d\n", i, i+1, map1D[i], map1D[i+1]);
 			// 한칸씩 뒤로 밀어주는 함수 필요하고 .. 배열 인덱스 넘어가면 잘라주는 것도 필요하고 . . 나는너무슬퍼
 			// 근데 위에서는 2개 이상의 구슬이 2개로 바뀌니까 배열 넘어가는거 고려안해도 ㄱㅊ
 			for (int j = n * n; j >= i; j--) {
 				map1D[j + 1] = map1D[j];
 			}
 			map1D[i] = 1;
-			// printf("after : index %d %d value %d %d\n", i, i+1, map1D[i], map1D[i+1]);
 		}
 	}
 }
@@ -258,18 +256,14 @@ int main () {
 	for (int i = 0; i < m * 2; i += 2) {
 		blizzard(magic[i], magic[i + 1], map, n);
 		int *map1D = mapTo1D(map, n);
-		move(map1D, n);
-	
-		// mapTo2D(map1D, map, n);
-		// printf("\nmap before %dth explosion\n", i/2 + 1);
-		// test_printMap(map, n);
 
+		move(map1D, n);
 		while (explode(map1D, n))
 			; // explode 전후가 같을 때까지 explode 해야함 . . == 4개가 연속하지 않을때까지
 
-		// mapTo2D(map1D, map, n);
-		// printf("\nmap before %dth change\n", i/2 + 1);
-		// test_printMap(map, n);
+		mapTo2D(map1D, map, n);
+		printf("\nmap before change\n");
+		test_printMap(map, n);
 
 		change(map1D, n);
 
