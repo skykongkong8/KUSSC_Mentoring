@@ -16,21 +16,7 @@ int g_one;
 int g_two;
 int g_three;
 
-void blizzard_1D(int dir, int s, int map[2500], int n) {
-	int shark = n / 2;
-	if (dir == UP) {
-
-	}
-	else if (dir == DOWN) {
-
-	}
-	else if (dir == LEFT) {
-
-	}
-	else if (dir == RIGHT) {
-
-	}
-}
+void test_printMap1D(int map[2500], int n);
 
 void blizzard(int dir, int s, int map[50][50], int n) { // dir 방향으로 거리 s 이하의 구슬 모두 파괴
 	int shark = n / 2;
@@ -101,12 +87,15 @@ int *mapTo1D(int map[50][50], int n) {
 			amount++;
 		}
 	}
+	for (j = amount - 1; j >= 0; j--) {
+		map1D[idx++] = map[0][j];
+	}
 	return (map1D);
 }
 
-void move(int map1D[2500], int n) {
-	for (int i = 0; i < n * n; i++) {
-		if (map1D[i] == 0 && i != 0) {
+void move(int map1D[2500], int n) { // idx = 43, 44 왜 안 옮겨짐? 제발
+	for (int i = 1; i < n * n; i++) {
+		if (map1D[i] == 0 && map1D[i + 1] != 0) {
 			for (int j = i; j < n * n; j++) {
 				map1D[j] = map1D[j + 1];
 			}
@@ -150,7 +139,7 @@ void change(int map1D[2500], int n) {
 	int starting_idx;
 	int number;
 	int count = 1;
-	for (int i = 1; i < n * n; i++) {
+	for (int i = 1; i < n * n; i += 2) {
 		if (map1D[i] == 0)
 			return ;
 		if (map1D[i] == map1D[i + 1]) {
@@ -167,38 +156,65 @@ void change(int map1D[2500], int n) {
 			count = 1;
 		}
 		else {
+			// printf("before : index %d %d value %d %d\n", i, i+1, map1D[i], map1D[i+1]);
 			// 한칸씩 뒤로 밀어주는 함수 필요하고 .. 배열 인덱스 넘어가면 잘라주는 것도 필요하고 . . 나는너무슬퍼
 			// 근데 위에서는 2개 이상의 구슬이 2개로 바뀌니까 배열 넘어가는거 고려안해도 ㄱㅊ
-			// 근데 map[j+1] = map[j]로 해버리면 j번째가 저멀리 가버리니까
-			// j = n*n
-			// map[j]번째를 map[j-1]에 넣기 . .
-			/*
-			j = n*n;
-			map[j + 1] = map[j];
-			j--;
-			*/
-			for (int j = n * n; j > i; j--) {
+			for (int j = n * n; j >= i; j--) {
 				map1D[j + 1] = map1D[j];
 			}
 			map1D[i] = 1;
+			// printf("after : index %d %d value %d %d\n", i, i+1, map1D[i], map1D[i+1]);
 		}
 	}
 }
 
-// 1차원을 2차원으로 바꾸는 함수도 만들귀 . . ! .. vs 그냥 블리자드를 1차원맵에서 할수있게 그걸 새로짜기
-int **mapTo2D(int map[2500], int n) {
-	int **map2D = calloc(50, sizeof(int *));
-	int shark = n / 2;
-	int dx = 0;
-	int dy = 0;
-	int dir = 1;
-	return (map2D);
+void mapTo2D(int map1D[2500], int map[50][50], int n) {
+	int idx = 0;
+	int	i = n / 2;
+	int j = n / 2;
+	map[i][j] = map1D[idx++];
+
+	int amount = 1;
+	int dir = LEFT;
+
+	while (idx < n * n) {
+		if (dir == LEFT) {
+			for (int count = 0; count < amount; count++) {
+				j--;
+				map[i][j] = map1D[idx++];
+			}
+			dir = DOWN;
+		}
+		else if (dir == DOWN) {
+			for (int count = 0; count < amount; count++) {
+				i++;
+				map[i][j] = map1D[idx++];
+			}
+			dir = RIGHT;
+			amount++;
+		}
+		else if (dir == RIGHT) {
+			for (int count = 0; count < amount; count++) {
+				j++;
+				map[i][j] = map1D[idx++];
+			}
+			dir = UP;
+		}
+		else if (dir == UP) {
+			for (int count = 0; count < amount; count++) {
+				i--;
+				map[i][j] = map1D[idx++];
+			}
+			dir = LEFT;
+			amount++;
+		}
+	}
 }
 
 void test_printMap(int map[50][50], int n) {
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < n; j++) {
-			printf("%d", map[i][j]);
+			printf("%d ", map[i][j]);
 		}
 		printf("\n");
 	}
@@ -240,14 +256,26 @@ int main () {
 	}
 
 	for (int i = 0; i < m * 2; i += 2) {
-		blizzard(magic[i], magic[i + 1], map, n); // 아맞다..
+		blizzard(magic[i], magic[i + 1], map, n);
 		int *map1D = mapTo1D(map, n);
 		move(map1D, n);
+	
+		// mapTo2D(map1D, map, n);
+		// printf("\nmap before %dth explosion\n", i/2 + 1);
+		// test_printMap(map, n);
+
 		while (explode(map1D, n))
 			; // explode 전후가 같을 때까지 explode 해야함 . . == 4개가 연속하지 않을때까지
-		printf("\nmap after %d in 1D\n");
-		test_printMap1D(map1D, n);
+
+		// mapTo2D(map1D, map, n);
+		// printf("\nmap before %dth change\n", i/2 + 1);
+		// test_printMap(map, n);
+
 		change(map1D, n);
+
+		mapTo2D(map1D, map, n);
+		printf("\nmap after %dth blizzard\n", i/2 + 1);
+		test_printMap(map, n);
 		free(map1D);
 		map1D = NULL;
 	}
