@@ -22,7 +22,7 @@ void test_printMap(int map[50][50], int n);
 
 void blizzard(int dir, int s, int map[50][50], int n) { // dir 방향으로 거리 s 이하의 구슬 모두 파괴
 	int shark = n / 2;
-	if (dir == UP) { // (r,c)에서 {N / 2 - s <= c < N / 2}인 구슬 0으로 .. 하  
+	if (dir == UP) { // (r,c)에서 {N / 2 - s <= c < N / 2}인 구슬 0으로
 		for (int i = shark - s; i < shark; i++) {
 			map[i][shark] = 0;
 		}
@@ -46,7 +46,7 @@ void blizzard(int dir, int s, int map[50][50], int n) { // dir 방향으로 거�
 		return ;
 }
 
-// 나선형 배열 1차원으로 바꾸는 코드 => 악 ㅠㅠ 블리자드해놓고 상어아닌데 0이 왜나와 !! 했는데 . . 구슬 사라졌었던거임
+// 나선형 배열 1차원으로 바꾸는 함수
 int *mapTo1D(int map[50][50], int n) {
 	int *map1D = calloc(2500, sizeof(int));
 	int idx = 0;
@@ -96,16 +96,26 @@ int *mapTo1D(int map[50][50], int n) {
 }
 
 void move(int map1D[2500], int n) {
+	int k;
 	for (int i = 1; i < n * n; i++) {
-		if (map1D[i] == 0 && map1D[i + 1] != 0) {
+		if (map1D[i] == 0) {
+			k = i; // 끝부분 000인지 확인하려고 코드가 좀 더러워졌습니다..ㅎ.ㅎ.
+			while (k < n * n) {
+				if (map1D[k] != 0)
+					break ;
+				k++;
+			}
+			if (k == n * n)
+				return ;
 			for (int j = i; j < n * n; j++) {
 				map1D[j] = map1D[j + 1];
 			}
+			i--;
 		}
 	}
 }
 
-int explode(int map1D[2500], int n) { // 여기서 출력할 정보 저장해야 하는데?..
+int explode(int map1D[2500], int n) {
 	int count = 1;
 	int	i = 0;
 	int ret = 0;
@@ -122,13 +132,13 @@ int explode(int map1D[2500], int n) { // 여기서 출력할 정보 저장해야
 					else if (map1D[i] == 2)
 						g_two++;
 					else if (map1D[i] == 3)
-						g_three++; // 저장완료 ㅎ ㅎ
+						g_three++;
 					map1D[i--] = 0;
 					count--;
 				}
 				ret = 1; // explode 일어나면 리턴값 변경
 			}
-			move(map1D, n);
+			// move(map1D, n); 함수 밖에서 한 번에 해야함
 			count = 1;
 		}
 		else
@@ -159,9 +169,7 @@ void change(int map1D[2500], int n) {
 			i = starting_idx;
 			count = 1;
 		}
-		else {
-			// 한칸씩 뒤로 밀어주는 함수 필요하고 .. 배열 인덱스 넘어가면 잘라주는 것도 필요하고 . . 나는너무슬퍼
-			// 근데 위에서는 2개 이상의 구슬이 2개로 바뀌니까 배열 넘어가는거 고려안해도 ㄱㅊ
+		else { // 1개 연속은 공간 확보 위해 구슬 하나씩 뒤로 밀어줌
 			for (int j = n * n; j >= i; j--) {
 				map1D[j + 1] = map1D[j];
 			}
@@ -237,7 +245,7 @@ int main () {
 
 	// 1, 2, 3번 구슬. 같은 번호 구슬이 연속하는 칸에 있으면, 연속하는 구슬.
 
-	// 맵을 해체했다 재조립하기 ? 어차피 N 알면 구슬개수 알자늠 (초기 격자에서 0 빼야함 !)
+	// 맵을 해체했다 재조립하기
 
 	// 빈 칸 생기면 옆 칸 구슬 모두 이동 => 이동 함수
 	// 연속하는 구슬 4개 이상 시 폭발 => 폭발 함수
@@ -252,24 +260,37 @@ int main () {
 		}
 	}
 
-	int magic[200]; // ㅎㅎㅎ 매직 짝수번째 인덱스는 방향 홀수번째 인덱스는 거리 !! ♡
+	int magic[200]; // 짝수번째 인덱스는 방향 홀수번째 인덱스는 거리
 	for (int i = 0; i < m * 2; i++) {
 		scanf("%d", &magic[i]);
 	}
 
+	int explode_flag = 1;
 	for (int i = 0; i < m * 2; i += 2) {
 		blizzard(magic[i], magic[i + 1], map, n);
 		int *map1D = mapTo1D(map, n);
 
 		move(map1D, n);
-		while (explode(map1D, n))
-			; // explode 전후가 같을 때까지 explode 해야함 . . == 4개가 연속하지 않을때까지
+		mapTo2D(map1D, map, n);
+		printf("\nmap after %dth move\n", i/2 + 1);
+		test_printMap(map, n);
+
+		while (explode_flag) {
+			explode_flag = 0;
+			while (explode(map1D, n))
+				explode_flag = 1; // explode 전후가 같을 때까지 explode 해야함 . . == 4개가 연속하지 않을때까지
+			move(map1D, n);
+		}
+		mapTo2D(map1D, map, n);
+		printf("\nmap after %dth explosion\n", i/2 + 1);
+		test_printMap(map, n);
 
 		change(map1D, n);
 
 		mapTo2D(map1D, map, n);
-		// printf("\nmap after %dth blizzard\n", i/2 + 1);
-		// test_printMap(map, n);
+		printf("\nmap after %dth blizzard\n", i/2 + 1);
+		test_printMap(map, n);
+
 		free(map1D);
 		map1D = NULL;
 	}
