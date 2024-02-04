@@ -271,9 +271,6 @@ int main () {
 		int *map1D = mapTo1D(map, n);
 
 		move(map1D, n);
-		mapTo2D(map1D, map, n);
-		printf("\nmap after %dth move\n", i/2 + 1);
-		test_printMap(map, n);
 
 		while (explode_flag) {
 			explode_flag = 0;
@@ -281,15 +278,10 @@ int main () {
 				explode_flag = 1; // explode 전후가 같을 때까지 explode 해야함 . . == 4개가 연속하지 않을때까지
 			move(map1D, n);
 		}
-		mapTo2D(map1D, map, n);
-		printf("\nmap after %dth explosion\n", i/2 + 1);
-		test_printMap(map, n);
+		explode_flag = 1;
 
 		change(map1D, n);
-
 		mapTo2D(map1D, map, n);
-		printf("\nmap after %dth blizzard\n", i/2 + 1);
-		test_printMap(map, n);
 
 		free(map1D);
 		map1D = NULL;
